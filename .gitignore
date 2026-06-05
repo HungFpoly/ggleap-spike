@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Secrets - KHÔNG commit khóa Service Account hay file môi trường
+*.env
+service_account*.json
+secrets/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.hypothesis/
+.pytest_cache/
