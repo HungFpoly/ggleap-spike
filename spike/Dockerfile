@@ -1,6 +1,9 @@
 # Image nền Playwright đã có sẵn Chromium + mọi thư viện hệ thống
 FROM mcr.microsoft.com/playwright/python:v1.47.0-jammy
 
+# In log real-time, không đệm stdout (quan trọng khi xem log trên Render)
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 COPY check_recaptcha.py .
 
