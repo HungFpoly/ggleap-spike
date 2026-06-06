@@ -17,3 +17,11 @@ Thumbs.db
 .idea/
 .hypothesis/
 .pytest_cache/
+
+# Temp / output files
+test_out.txt
+run_out.txt
+*.tmp
+
+# Kiro spec/tài liệu nội bộ
+.kiro/

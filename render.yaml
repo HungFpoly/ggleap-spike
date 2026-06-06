@@ -1,0 +1,23 @@
+services:
+  - type: cron
+    name: pc-availability-tracker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: frankfurt              # EU - tránh geo-block, gần Prague
+    schedule: "44 * * * *"         # phút 44 mỗi giờ (đầu giờ kế tiếp cách ~16' >= 15')
+    plan: starter                  # RAM >= 512MB cho Chromium
+    envVars:
+      - key: GOOGLE_SPREADSHEET_ID
+        sync: false                # điền giá trị trong dashboard (secret)
+      - key: GOOGLE_SA_PATH
+        value: /etc/secrets/service_account.json
+      - key: LOOK_AHEAD_HOURS
+        value: "3"
+      - key: VENUES_JSON
+        sync: false                # tùy chọn; bỏ trống sẽ dùng 3 Quán mặc định
+      - key: EXCLUDED_ZONES
+        value: "Room for unassigned machines"
+      - key: PROXY_ENABLED
+        value: "false"
+      - key: PROXY_SERVER
+        sync: false
