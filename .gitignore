@@ -21,6 +21,10 @@ Thumbs.db
 # Temp / output files
 test_out.txt
 run_out.txt
+clr.txt
+clr2.txt
+dump.txt
+open.txt
 *.tmp
 
 # Kiro spec/tài liệu nội bộ

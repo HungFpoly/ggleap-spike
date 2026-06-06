@@ -1,4 +1,4 @@
-"""Entrypoint one-shot cho Render Cron Job.
+"""Entrypoint one-shot cho Render Cron Job (async, thu thập 3 Quán song song).
 
 Chế độ:
   (mặc định)   chạy một Chu_Kỳ đầy đủ, ghi Google Sheets.
@@ -8,6 +8,7 @@ Chế độ:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import sys
 
@@ -24,8 +25,8 @@ def _setup_logging():
     )
 
 
-def run_validate(config: AppConfig, browser) -> bool:
-    """Fetch thử Khung_Giờ kế tiếp cho mỗi Quán; báo cáo HTTP 200. Không ghi Sheets."""
+async def run_validate(config: AppConfig, browser) -> bool:
+    """Fetch thử Khung_Giờ kế tiếp cho mỗi Quán (song song). Không ghi Sheets."""
     log = logging.getLogger("pc_tracker.validate")
     client = GGLeapClient(browser, config)
     calc = TimeSlotCalculator(min_lead_minutes=config.min_lead_minutes)
@@ -34,45 +35,50 @@ def run_validate(config: AppConfig, browser) -> bool:
         log.error("Không có Khung_Giờ hợp lệ để kiểm tra")
         return False
     slot = slots[0]
-    all_ok = True
-    for venue in config.venues:
-        page = browser.open_booking_page(venue.slug)
+
+    async def check(venue):
+        page = await browser.open_booking_page(venue.slug)
         try:
-            client.fetch_availability(page, venue, slot)
+            await client.fetch_availability(page, venue, slot)
             log.info("VALIDATE %s: PASS (HTTP 200) cho %s",
                      venue.name, slot.available_for)
+            return True
         except Exception as e:
-            all_ok = False
             log.error("VALIDATE %s: FAIL - %s", venue.name, e)
+            return False
         finally:
-            page.close()
-    return all_ok
+            await page.close()
+
+    results = await asyncio.gather(*(check(v) for v in config.venues))
+    return all(results)
 
 
-def main(argv=None) -> int:
-    _setup_logging()
-    argv = argv if argv is not None else sys.argv[1:]
+async def _main_async(argv) -> int:
     mode_validate = "--validate" in argv
-
     config = AppConfig.from_env()
     from app.browser_manager import BrowserManager
     browser = BrowserManager(config)
-
     try:
-        browser.start()
+        await browser.start()
         if mode_validate:
-            ok = run_validate(config, browser)
+            ok = await run_validate(config, browser)
             return 0 if ok else 1
         from app.sheets_writer import SheetsWriter
         from app.orchestrator import run_cycle
         sheets = SheetsWriter(config)
-        run_cycle(config, browser, sheets)
+        await run_cycle(config, browser, sheets)
         return 0
     except Exception:
         logging.getLogger("pc_tracker.main").exception("Lỗi nghiêm trọng")
         return 1
     finally:
-        browser.close()
+        await browser.close()
+
+
+def main(argv=None) -> int:
+    _setup_logging()
+    argv = argv if argv is not None else sys.argv[1:]
+    return asyncio.run(_main_async(argv))
 
 
 if __name__ == "__main__":

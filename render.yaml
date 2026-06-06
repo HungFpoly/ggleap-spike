@@ -4,7 +4,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     region: frankfurt              # EU - tránh geo-block, gần Prague
-    schedule: "44 * * * *"         # phút 44 mỗi giờ (đầu giờ kế tiếp cách ~16' >= 15')
+    schedule: "40 * * * *"         # phút 40 mỗi giờ (đầu giờ kế tiếp cách ~20', đủ đệm xử lý 3 quán)
     plan: starter                  # RAM >= 512MB cho Chromium
     envVars:
       - key: GOOGLE_SPREADSHEET_ID

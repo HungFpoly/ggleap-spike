@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import json
 import logging
-import time
 from datetime import datetime
 from urllib.parse import urlencode
 
@@ -98,8 +97,8 @@ class GGLeapClient:
         self.browser = browser
         self.config = config
 
-    def _get_token(self, page) -> str:
-        res = page.evaluate(JS_GET_TOKEN, {
+    async def _get_token(self, page) -> str:
+        res = await page.evaluate(JS_GET_TOKEN, {
             "siteKey": self.config.site_key,
             "action": self.config.recaptcha_action,
         })
@@ -107,19 +106,20 @@ class GGLeapClient:
             raise FetchError(f"Không lấy được token: {res.get('error')}")
         return res["token"]
 
-    def fetch_availability(self, page, venue: Venue, slot: TimeSlot) -> dict:
+    async def fetch_availability(self, page, venue: Venue, slot: TimeSlot) -> dict:
         """In-page fetch cho một Khung_Giờ. Trả về JSON đã parse (dict).
 
         Xử lý: 200 -> trả JSON; 400 -> ValidationError; 403 -> refresh token +
         thử lại; 5xx/network -> backoff retry; geo-block -> GeoBlockError.
         """
+        import asyncio
         last_status = None
         for attempt in range(self.config.max_api_retries):
-            token = self._get_token(page)
+            token = await self._get_token(page)
             url, params, headers = build_request(
                 venue, slot, token, self.config.api_base_url)
             full_url = f"{url}?{urlencode(params)}"
-            res = page.evaluate(JS_FETCH, {"url": full_url, "headers": headers})
+            res = await page.evaluate(JS_FETCH, {"url": full_url, "headers": headers})
             status = res.get("status")
             last_status = status
 
@@ -131,16 +131,14 @@ class GGLeapClient:
             if status == 403:
                 logger.warning("%s %s: HTTP 403, làm mới token và thử lại",
                                venue.name, slot.available_for)
-                self.browser.refresh_page(page)
+                await self.browser.refresh_page(page)
                 continue
             if status is not None and 500 <= status < 600:
-                time.sleep(2 ** attempt)
+                await asyncio.sleep(2 ** attempt)
                 continue
-            if res.get("country") and status == -1:
-                pass  # lỗi mạng trong trang
             logger.warning("%s %s: HTTP %s (thử lại)", venue.name,
                            slot.available_for, status)
-            time.sleep(2 ** attempt)
+            await asyncio.sleep(2 ** attempt)
 
         raise FetchError(
             f"{venue.name} {slot.available_for}: thất bại sau "
