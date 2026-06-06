@@ -61,6 +61,7 @@ records_list = st.lists(
     st.builds(
         AvailabilityRecord,
         venue=st.just("MVP"),
+        date=st.just("2026-06-06"),
         collection_time=st.text(min_size=1, max_size=8),
         available_for=st.text(min_size=1, max_size=8),
         zone=st.text(min_size=1, max_size=8),
@@ -102,7 +103,7 @@ def test_route_to_correct_tab(per_venue):
     writer, ss = make_writer()
     for venue, recs in per_venue.items():
         # gán đúng venue cho từng record
-        recs = [AvailabilityRecord(venue, r.collection_time, r.available_for,
+        recs = [AvailabilityRecord(venue, r.date, r.collection_time, r.available_for,
                                    r.zone, r.pcs_available) for r in recs]
         writer.append_records(venue, recs)
 
@@ -117,7 +118,7 @@ def test_route_to_correct_tab(per_venue):
 def test_header_created_for_new_tab():
     writer, ss = make_writer()
     writer.append_records("MVP", [
-        AvailabilityRecord("MVP", "4:44PM", "5:00-6:00", "Plant A", "3")])
+        AvailabilityRecord("MVP", "2026-06-06", "4:44PM", "5:00PM-6:00PM", "Plant A", "3")])
     rows = ss.worksheets_map["MVP"].rows
     assert rows[0] == COLUMN_HEADERS
-    assert rows[1] == ["4:44PM", "5:00-6:00", "Plant A", "3"]
+    assert rows[1] == ["2026-06-06", "4:44PM", "5:00PM-6:00PM", "Plant A", "3"]

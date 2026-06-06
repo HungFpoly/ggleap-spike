@@ -17,6 +17,7 @@ text = st.text(min_size=0, max_size=40)
 records = st.builds(
     AvailabilityRecord,
     venue=text,
+    date=text,
     collection_time=text,
     available_for=text,
     zone=text,
@@ -26,13 +27,14 @@ records = st.builds(
 
 # Feature: pc-availability-tracker, Property 1: Round-trip bản ghi <-> hàng Sheet
 # Với mọi AvailabilityRecord hợp lệ, to_row rồi from_row phải trả về bản ghi
-# tương đương; hàng luôn có đúng 4 phần tử theo thứ tự cột.
+# tương đương; hàng luôn có đúng 5 phần tử theo thứ tự cột.
 @given(records)
 @settings(max_examples=100)
 def test_record_row_roundtrip(record):
     row = record.to_row()
-    assert len(row) == 4
+    assert len(row) == 5
     assert row == [
+        record.date,
         record.collection_time,
         record.available_for,
         record.zone,

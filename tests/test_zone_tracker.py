@@ -36,7 +36,7 @@ def test_build_records(prev_parsed, cur_parsed):
     prev_display = build_display_names(prev_parsed)
     tracker = ZoneStateTracker({"MVP": dict(prev_display)})
 
-    records = tracker.build_records("MVP", "5:00-6:00", "4:44PM", cur_parsed)
+    records = tracker.build_records("MVP", "2026-06-06", "5:00PM-6:00PM", "4:44PM", cur_parsed)
 
     present = {u: a for u, _, a in cur_parsed}
     known_uuids = set(prev_display)
@@ -47,9 +47,10 @@ def test_build_records(prev_parsed, cur_parsed):
     # map lại uuid theo tên hiển thị để kiểm giá trị
     cur_display = build_display_names(cur_parsed)
     for r in records:
-        # mỗi bản ghi đúng venue/slot/collection
+        # mỗi bản ghi đúng venue/date/slot/collection
         assert r.venue == "MVP"
-        assert r.available_for == "5:00-6:00"
+        assert r.date == "2026-06-06"
+        assert r.available_for == "5:00PM-6:00PM"
         assert r.collection_time == "4:44PM"
         assert r.pcs_available != ""  # không bỏ trống
 

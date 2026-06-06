@@ -46,6 +46,7 @@ class ZoneStateTracker:
     def build_records(
         self,
         venue: str,
+        date: str,
         available_for: str,
         collection_time: str,
         parsed: list[ParsedZone],
@@ -70,6 +71,7 @@ class ZoneStateTracker:
             records.append(
                 AvailabilityRecord(
                     venue=venue,
+                    date=date,
                     collection_time=collection_time,
                     available_for=available_for,
                     zone=name,

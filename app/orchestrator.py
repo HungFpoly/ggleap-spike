@@ -6,7 +6,7 @@ import asyncio
 import logging
 from datetime import datetime
 
-from app.clock import now_local, now_label
+from app.clock import now_local, now_label, date_label
 from app.config import AppConfig, Venue
 from app.ggleap_client import GGLeapClient, ValidationError
 from app.monitor import Monitor
@@ -28,6 +28,7 @@ async def collect_venue(
     calc = TimeSlotCalculator(min_lead_minutes=config.min_lead_minutes)
     slots = calc.next_hour_slots(now, config.look_ahead_hours)
     collection_time = calc.collection_time_label(now)
+    date = date_label(now)
 
     page = await client.browser.open_booking_page(venue.slug)
     records = []
@@ -42,7 +43,7 @@ async def collect_venue(
                 payload, venue.name, slot.available_for, config.excluded_zones)
             records.extend(
                 tracker.build_records(
-                    venue.name, slot.available_for, collection_time, parsed))
+                    venue.name, date, slot.available_for, collection_time, parsed))
     finally:
         await page.close()
     return records

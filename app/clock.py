@@ -23,3 +23,9 @@ def now_label(now: datetime | None = None) -> str:
     """Nhãn 'YYYY-MM-DD HH:MM' theo giờ Prague (dùng cho last_success)."""
     dt = now if now is not None else now_local()
     return dt.astimezone(PRAGUE).strftime("%Y-%m-%d %H:%M")
+
+
+def date_label(now: datetime | None = None) -> str:
+    """Nhãn ngày 'YYYY-MM-DD' theo giờ Prague (ngày thu thập)."""
+    dt = now if now is not None else now_local()
+    return dt.astimezone(PRAGUE).strftime("%Y-%m-%d")
